@@ -8,7 +8,7 @@ import movieRouter from './routes/movieRouter.js';
 import bookingRouter from './routes/bookingRouter.js';
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 
 // MIDDLEWARES
 // تحديث إعدادات CORS للسماح برابط الفيرسل الخاص بك
@@ -38,3 +38,5 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`server started on http://localhost:${port}`)
 })
+
+export default app;
