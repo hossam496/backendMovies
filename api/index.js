@@ -10,16 +10,33 @@ import bookingRouter from '../routes/bookingRouter.js';
 const app = express();
 const port = process.env.PORT || 5000;
 
-// MIDDLEWARES - CORS must be first
+// Manual CORS middleware for Vercel serverless compatibility
+app.use((req, res, next) => {
+    const allowedOrigins = ['https://booking-movies.vercel.app', 'http://localhost:5173'];
+    const origin = req.headers.origin;
+
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+    // Handle preflight immediately
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    next();
+});
+
+// Also use cors middleware as backup
 app.use(cors({
     origin: ['https://booking-movies.vercel.app', 'http://localhost:5173'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
-
-// Handle OPTIONS preflight requests explicitly
-app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
