@@ -11,16 +11,24 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // MIDDLEWARES
-// تحديث إعدادات CORS للسماح برابط الفيرسل الخاص بك
-app.use(cors({
-    origin: ['https://booking-movies.vercel.app', 'http://localhost:5173'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // أضفنا OPTIONS هنا
-    credentials: true 
-}));
+app.use((req, res, next) => {
+    const allowedOrigins = ['https://booking-movies.vercel.app', 'http://localhost:5173'];
+    const origin = req.headers.origin;
 
-app.options('*', cors());
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-app.use(express.json());
+    if (req.method === 'OPTIONS') {
+        return res.status(204).end();
+    }
+
+    next();
+});
 app.use(express.urlencoded({ extended: true }));
 
 
