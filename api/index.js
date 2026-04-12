@@ -10,26 +10,23 @@ import bookingRouter from '../routes/bookingRouter.js';
 const app = express();
 const port = process.env.PORT || 5000;
 
-// CORS middleware for Vercel serverless compatibility
-app.use((req, res, next) => {
-    const allowedOrigins = ['https://booking-movies.vercel.app', 'http://localhost:5173'];
-    const origin = req.headers.origin;
+// CORS — allow production frontend and local dev
+const allowedOrigins = ['https://booking-movies.vercel.app', 'http://localhost:5173'];
 
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-
-    // Handle preflight immediately with a 204 No Content
-    if (req.method === 'OPTIONS') {
-        return res.status(204).end();
-    }
-
-    next();
-});
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (e.g. curl, Postman) or matching origins
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error(`CORS: origin ${origin} not allowed`));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+    optionsSuccessStatus: 204
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
