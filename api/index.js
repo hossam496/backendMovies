@@ -13,7 +13,7 @@ const port = process.env.PORT || 5000;
 // CORS — allow production frontend and local dev
 const allowedOrigins = ['https://booking-movies.vercel.app', 'http://localhost:5173'];
 
-app.use(cors({
+const corsOptions = {
     origin: (origin, callback) => {
         // Allow requests with no origin (e.g. curl, Postman) or matching origins
         if (!origin || allowedOrigins.includes(origin)) {
@@ -26,7 +26,11 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: true,
     optionsSuccessStatus: 204
-}));
+};
+
+// Explicitly handle ALL preflight OPTIONS requests before any other middleware
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
