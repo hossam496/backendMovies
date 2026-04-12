@@ -8,14 +8,27 @@ import movieRouter from './routes/movieRouter.js';
 import bookingRouter from './routes/bookingRouter.js';
 
 const app = express();
-const port = process.env.PORT || 5000;// MIDDLEWARES
-app.use(cors({
-    origin: function (origin, callback) {
-        callback(null, true);
-    },
-    credentials: true,
-}));
-app.use(express.json());
+const port = process.env.PORT || 5000;
+
+// MIDDLEWARES
+app.use((req, res, next) => {
+    const allowedOrigins = ['https://booking-movies.vercel.app', 'http://localhost:5173'];
+    const origin = req.headers.origin;
+
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+    if (req.method === 'OPTIONS') {
+        return res.status(204).end();
+    }
+
+    next();
+});
 app.use(express.urlencoded({ extended: true }));
 
 

@@ -7,14 +7,10 @@ import moviesController from '../controllers/moviesController.js'
 const movieRouter = express.Router()
 
 // ✅ تأكد من وجود مجلد uploads
-const uploadDir = process.env.NODE_ENV === 'production' ? '/tmp/uploads' : path.join(process.cwd(), 'uploads')
+const uploadDir = path.join(process.cwd(), 'uploads')
 if (!fs.existsSync(uploadDir)) {
-    try {
-        fs.mkdirSync(uploadDir, { recursive: true })
-        console.log('📁 Created uploads directory')
-    } catch (err) {
-        console.warn('⚠️ Could not create uploads directory (might be read-only on Vercel)', err.message)
-    }
+    fs.mkdirSync(uploadDir, { recursive: true })
+    console.log('📁 Created uploads directory')
 }
 
 // ✅ إعداد multer storage

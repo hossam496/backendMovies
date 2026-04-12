@@ -1,5 +1,5 @@
 import User from "../models/userModel.js";
-import bcrypt from "bcryptjs"; 
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = 'your_jwt_secret_here'
@@ -8,13 +8,13 @@ const TOKEN_EXPIRES_IN = '24h'
 /* ---------------- helpers ---------------- */
 const emailIsValid = (e) => /\S+@\S+\.\S+/.test(String(e || ""));
 const extractCleanPhone = (p) => String(p || "").replace(/\D/g, "");
-const mkToken = (payload) => jwt.sign(payload, JWT_SECRET, {expiresIn: TOKEN_EXPIRES_IN});
+const mkToken = (payload) => jwt.sign(payload, JWT_SECRET, { expiresIn: TOKEN_EXPIRES_IN });
 
 // REGISTER FUNCTION (تم التصحيح)
 export const registerUser = async (req, res) => {
   try {
     const { fullName, username, email, phone, birthDate, password } = req.body || {};
-    
+
     if (!fullName || !username || !email || !phone || !birthDate || !password) {
       return res.status(400).json({
         success: false,
@@ -95,7 +95,7 @@ export const registerUser = async (req, res) => {
     }
 
     // تشفير كلمة المرور
-    const salt = await bcrypt.genSalt(10); 
+    const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // إنشاء المستخدم الجديد
@@ -103,7 +103,7 @@ export const registerUser = async (req, res) => {
       fullName: fullName.trim(),
       username: username.trim().toLowerCase(),
       email: email.toLowerCase().trim(),
-      phone: cleanPhone, 
+      phone: cleanPhone,
       birthDate: parsedBirth,
       password: hashedPassword,
     });
@@ -132,7 +132,7 @@ export const registerUser = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Register error:', err); 
+    console.error('Register error:', err);
     if (err.code === 11000) {
       const dubKey = Object.keys(err.keyValue || {})[0];
       return res.status(400).json({
@@ -143,15 +143,14 @@ export const registerUser = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: 'Server error: ' + err.message 
+      message: 'Server error: ' + err.message
     });
   }
 };
 
 // LOGIN FUNCTION (تم التصحيح)
-export const login = async (req, res) => { 
+export const login = async (req, res) => {
   try {
-    console.log("Login request received");
     const { email, password } = req.body || {};
 
     if (!email || !password) {
@@ -162,7 +161,7 @@ export const login = async (req, res) => {
     }
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
-    if (!user) { 
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -180,12 +179,12 @@ export const login = async (req, res) => {
     const token = mkToken({ id: user._id.toString(), role: user.role });
 
     return res.status(200).json({
-      success: true, 
+      success: true,
       message: 'Login successful',
       token,
       user: {
         id: user._id.toString(),
-        fullName: user.fullName, 
+        fullName: user.fullName,
         username: user.username,
         email: user.email,
         role: user.role
@@ -234,7 +233,7 @@ export const updateUserRole = async (req, res) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
-    
+
     if (!['user', 'admin'].includes(role)) {
       return res.status(400).json({ success: false, message: 'Invalid role' });
     }
@@ -248,4 +247,4 @@ export const updateUserRole = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
-};
+};
