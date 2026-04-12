@@ -10,12 +10,16 @@ import bookingRouter from '../routes/bookingRouter.js';
 const app = express();
 const port = process.env.PORT || 5000;
 
-// MIDDLEWARES
+// MIDDLEWARES - CORS must be first
 app.use(cors({
     origin: ['https://booking-movies.vercel.app', 'http://localhost:5173'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
+
+// Handle OPTIONS preflight requests explicitly
+app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
