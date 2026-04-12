@@ -2,6 +2,7 @@ import mongoose from "mongoose"
 import Movie from "../models/movieModel.js"
 import path from "path"
 import fs from "fs"
+import cloudinary from "../config/cloudinary.js"
 
 const API_BASE = process.env.NODE_ENV === 'production' 
   ? 'https://backend-movies-ruby.vercel.app' 
@@ -31,15 +32,38 @@ const getUploadUrl = (val) => {
     return `${API_BASE}/uploads/${cleaned}`;
 };
 
-// Deletes a file from the uploads folder if it exists
-const tryUnlinkUploadUrl = (urlOrFilename) => {
+// Deletes a file from the uploads folder or from Cloudinary if it exists
+const tryUnlinkUploadUrl = async (urlOrFilename) => {
+    if (!urlOrFilename) return;
+    
+    // Check if it's a Cloudinary URL
+    if (typeof urlOrFilename === 'string' && urlOrFilename.includes('res.cloudinary.com')) {
+        try {
+            // Extract public_id from Cloudinary URL (e.g. ".../upload/v1234/movie-booking/filename.ext")
+            const urlParts = urlOrFilename.split('/upload/');
+            if (urlParts.length > 1) {
+                let pathAfterUpload = urlParts.pop();
+                // remove version tag if exists (v1234/)
+                pathAfterUpload = pathAfterUpload.replace(/^v\d+\//, '');
+                // remove extension
+                const publicId = pathAfterUpload.replace(/\.[^/.]+$/, "");
+                
+                await cloudinary.uploader.destroy(publicId);
+                console.log(`🗑️ Cloudinary file deleted: ${publicId}`);
+            }
+        } catch (err) {
+            console.warn("⚠️ Failed to delete Cloudinary file", urlOrFilename, err?.message);
+        }
+        return;
+    }
+
     const fn = extractFilenameFromUrl(urlOrFilename)
     if (!fn) return
     const filepath = path.join(process.cwd(), "uploads", fn)
     if (fs.existsSync(filepath)) {
         fs.unlink(filepath, (err) => {
             if (err)
-                console.warn("⚠️ Failed to unlink file", filepath, err?.message || err)
+                console.warn("⚠️ Failed to unlink local file", filepath, err?.message || err)
         })
     }
 }
@@ -163,16 +187,16 @@ export async function createMovie(req, res) {
         const body = req.body || {}
 
         // ✅ معالجة الملفات المرفوعة
-        const posterUrl = req.files?.poster?.[0]?.filename
-            ? getUploadUrl(req.files.poster[0].filename)
+        const posterUrl = req.files?.poster?.[0]?.path
+            ? req.files.poster[0].path
             : body.poster || null
 
-        const trailerUrl = req.files?.trailerUrl?.[0]?.filename
-            ? getUploadUrl(req.files.trailerUrl[0].filename)
+        const trailerUrl = req.files?.trailerUrl?.[0]?.path
+            ? req.files.trailerUrl[0].path
             : body.trailerUrl || null
 
-        const videoUrl = req.files?.videoUrl?.[0]?.filename
-            ? getUploadUrl(req.files.videoUrl[0].filename)
+        const videoUrl = req.files?.videoUrl?.[0]?.path
+            ? req.files.videoUrl[0].path
             : body.videoUrl || null
 
         console.log("🖼️ Poster URL:", posterUrl)
@@ -215,14 +239,14 @@ export async function createMovie(req, res) {
         const attachFiles = (
             filesArrName,
             targetArr,
-            toFilename = (f) => getUploadUrl(f)
+            toFilename = (f) => f
         ) => {
             if (!req.files?.[filesArrName]) return
             req.files[filesArrName].forEach((file, idx) => {
                 if (targetArr[idx]) {
-                    targetArr[idx].file = toFilename(file.filename)
+                    targetArr[idx].file = file.path
                 } else {
-                    targetArr[idx] = { name: "", file: toFilename(file.filename) }
+                    targetArr[idx] = { name: "", file: file.path }
                 }
             })
         }
@@ -234,8 +258,8 @@ export async function createMovie(req, res) {
         // ✅ latest trailer processing
         const latestTrailerBody = safeParseJSON(body.latestTrailer) || {}
         
-        if (req.files?.ltThumbnail?.[0]?.filename) {
-            latestTrailerBody.thumbnail = req.files.ltThumbnail[0].filename
+        if (req.files?.ltThumbnail?.[0]?.path) {
+            latestTrailerBody.thumbnail = req.files.ltThumbnail[0].path
         } else if (body.ltThumbnail) {
             const fn = extractFilenameFromUrl(body.ltThumbnail)
             latestTrailerBody.thumbnail = fn ? fn : body.ltThumbnail
@@ -252,11 +276,11 @@ export async function createMovie(req, res) {
         const attachLtFiles = (fieldName, arrName) => {
             if (!req.files?.[fieldName]) return
             req.files[fieldName].forEach((file, idx) => {
-                const filename = file.filename
+                const filepath = file.path
                 if (latestTrailerBody[arrName][idx]) {
-                    latestTrailerBody[arrName][idx].file = filename
+                    latestTrailerBody[arrName][idx].file = filepath
                 } else {
-                    latestTrailerBody[arrName][idx] = { name: "", file: filename }
+                    latestTrailerBody[arrName][idx] = { name: "", file: filepath }
                 }
             })
         }
@@ -558,16 +582,16 @@ export async function updateMovie(req, res) {
         }
 
         // Handle file updates (Unlink old if new provided)
-        const posterUrl = req.files?.poster?.[0]?.filename
-            ? (tryUnlinkUploadUrl(m.poster), getUploadUrl(req.files.poster[0].filename))
+        const posterUrl = req.files?.poster?.[0]?.path
+            ? (tryUnlinkUploadUrl(m.poster), req.files.poster[0].path)
             : body.poster || m.poster;
 
-        const trailerUrl = req.files?.trailerUrl?.[0]?.filename
-            ? (tryUnlinkUploadUrl(m.trailerUrl), getUploadUrl(req.files.trailerUrl[0].filename))
+        const trailerUrl = req.files?.trailerUrl?.[0]?.path
+            ? (tryUnlinkUploadUrl(m.trailerUrl), req.files.trailerUrl[0].path)
             : body.trailerUrl || m.trailerUrl;
 
-        const videoUrl = req.files?.videoUrl?.[0]?.filename
-            ? (tryUnlinkUploadUrl(m.videoUrl), getUploadUrl(req.files.videoUrl[0].filename))
+        const videoUrl = req.files?.videoUrl?.[0]?.path
+            ? (tryUnlinkUploadUrl(m.videoUrl), req.files.videoUrl[0].path)
             : body.videoUrl || m.videoUrl;
 
         const slots = body.slots ? (safeParseJSON(body.slots) || m.slots) : m.slots;
