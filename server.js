@@ -13,10 +13,12 @@ const port = process.env.PORT || 5000;
 // MIDDLEWARES
 // تحديث إعدادات CORS للسماح برابط الفيرسل الخاص بك
 app.use(cors({
-    origin: ['https://booking-movies.vercel.app', 'http://localhost:5173'], // أضفنا رابط Vercel ورابط اللوكال للتطوير
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true // مهم جداً إذا كنت ستستخدم التوكن أو الكوكيز لاحقاً
+    origin: ['https://booking-movies.vercel.app', 'http://localhost:5173'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // أضفنا OPTIONS هنا
+    credentials: true 
 }));
+
+app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
