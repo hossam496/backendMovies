@@ -57,15 +57,21 @@ export async function createBooking(req, res) {
     const prices = movie.seatPrices || { standard: 200, recliner: 400 };
 
     const seatDetails = seats.map(s => {
-      const isRecliner = String(s.row || "").match(/[D-E]/i); // Rows D and E are recliners
-      const price = isRecliner ? prices.recliner : prices.standard;
+      // Handle both formats: { seatId: "A1" } or { row: "A", col: 1 }
+      const sid = s.id || s.seatId || (s.row && s.col ? `${s.row}${s.col}` : "");
+      const row = s.row || (sid ? sid.charAt(0).toUpperCase() : "");
+      const col = s.col || (sid ? sid.substring(1) : "");
+      
+      const isRecliner = String(row || "").match(/[D-E]/i); // Rows D and E are recliners
+      const price = isRecliner ? (prices.recliner || 400) : (prices.standard || 200);
       totalAmount += price;
+
       return { 
-        id: s.id || `${s.row}${s.col}`, 
-        row: s.row, 
-        col: s.col, 
-        type: isRecliner ? "recliner" : "standard", 
-        price 
+        id: sid || "N/A", 
+        row, 
+        col, 
+        type: s.type || (isRecliner ? "recliner" : "standard"), 
+        price: s.price || price 
       };
     });
 
