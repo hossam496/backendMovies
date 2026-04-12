@@ -8,45 +8,30 @@ import movieRouter from './routes/movieRouter.js';
 import bookingRouter from './routes/bookingRouter.js';
 
 const app = express();
-const port = process.env.PORT || 5000;
 
-// MIDDLEWARES
-app.use((req, res, next) => {
-    const allowedOrigins = ['https://booking-movies.vercel.app', 'http://localhost:5173'];
-    const origin = req.headers.origin;
-
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-
-    if (req.method === 'OPTIONS') {
-        return res.status(204).end();
-    }
-
-    next();
-});
+// ✅ middleware
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(cors({
+    origin: [
+        "http://localhost:5173",
+        "https://booking-movies.vercel.app"
+    ],
+    credentials: true
+}));
 
 // DB
 connectDB();
 
-// ROUTES
+// routes
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 app.use('/api/auth', userRouter);
 app.use('/api/movies', movieRouter);
-app.use('/api/bookings', bookingRouter)
+app.use('/api/bookings', bookingRouter);
 
 app.get('/', (req, res) => {
     res.send('API WORKING')
 });
-
-app.listen(port, () => {
-    console.log(`server started on http://localhost:${port}`)
-})
 
 export default app;
