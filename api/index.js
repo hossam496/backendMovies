@@ -10,20 +10,11 @@ import bookingRouter from '../routes/bookingRouter.js';
 const app = express();
 const port = process.env.PORT || 5000;
 
-// CORS — allow production frontend and local dev
-const allowedOrigins = ['https://booking-movies.vercel.app', 'http://localhost:5173'];
-
+// CORS — allow production frontend and local dev dynamically
 const corsOptions = {
-    origin: (origin, callback) => {
-        // Allow requests with no origin (e.g. curl, Postman) or matching origins
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error(`CORS: origin ${origin} not allowed`));
-        }
+    origin: function(origin, callback) {
+        callback(null, true);
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: true,
     optionsSuccessStatus: 204
 };

@@ -151,6 +151,7 @@ export const registerUser = async (req, res) => {
 // LOGIN FUNCTION (تم التصحيح)
 export const login = async (req, res) => { 
   try {
+    console.log("Login request received");
     const { email, password } = req.body || {};
 
     if (!email || !password) {
