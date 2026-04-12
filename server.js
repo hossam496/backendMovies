@@ -14,7 +14,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-  origin: "https://booking-movies.vercel.app",
+  origin: [
+    "http://localhost:5173",
+    "https://booking-movies.vercel.app"
+  ],
   credentials: true
 }));
 
@@ -30,5 +33,12 @@ app.use('/api/bookings', bookingRouter);
 app.get('/', (req, res) => {
     res.send('API WORKING')
 });
+
+const port = process.env.PORT || 5000;
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
+    console.log(`Server started on http://localhost:${port}`);
+  });
+}
 
 export default app;

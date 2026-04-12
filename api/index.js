@@ -14,7 +14,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-  origin: "https://booking-movies.vercel.app",
+  origin: [
+    "http://localhost:5173",
+    "https://booking-movies.vercel.app"
+  ],
   credentials: true
 }));
 
