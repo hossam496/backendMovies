@@ -3,26 +3,33 @@ import Movie from "../models/movieModel.js"
 import path from "path"
 import fs from "fs"
 
-const API_BASE = "http://localhost:5000"
-
-/* ---------------------- small helpers ---------------------- */
-// Builds a full upload URL from a filename or returns null if invalid
-const getUploadUrl = (val) => {
-    if (!val) return null
-    if (typeof val === "string" && /^(https?:\/\/)/.test(val)) return val
-    const cleaned = String(val).replace(/^uploads\//, "")
-    if (!cleaned) return null
-    return `${API_BASE}/uploads/${cleaned}`
-}
+const API_BASE = process.env.NODE_ENV === 'production' 
+  ? 'https://backend-movies-ruby.vercel.app' 
+  : 'http://localhost:5000';
 
 // Extracts the filename from a URL or upload path
 const extractFilenameFromUrl = (u) => {
-    if (!u || typeof u !== "string") return null
-    const parts = u.split("/uploads/")
-    if (parts[1]) return parts[1]
-    if (u.startsWith("uploads/")) return u.replace(/^uploads\//, "")
-    return /^[^\/]+\.[a-zA-Z0-9]+$/.test(u) ? u : null
-}
+    if (!u || typeof u !== "string") return null;
+    const parts = u.split("/uploads/");
+    if (parts.length > 1) return parts.pop();
+    if (u.startsWith("uploads/")) return u.replace(/^uploads\//, "");
+    return /^[^\/]+\.[a-zA-Z0-9]+$/.test(u) || /^[^\/]+(\?.*)?$/.test(u) ? u : null;
+};
+
+// Builds a full upload URL from a filename or returns null if invalid
+// Also rewrites incorrectly saved localhost URLs to the correct API_BASE
+const getUploadUrl = (val) => {
+    if (!val) return null;
+    
+    // If it's an external URL not from our uploads folder, return it verbatim
+    if (typeof val === "string" && /^(https?:\/\/)/.test(val) && !val.includes('/uploads/')) {
+        return val;
+    }
+    
+    const cleaned = extractFilenameFromUrl(val);
+    if (!cleaned) return null;
+    return `${API_BASE}/uploads/${cleaned}`;
+};
 
 // Deletes a file from the uploads folder if it exists
 const tryUnlinkUploadUrl = (urlOrFilename) => {
