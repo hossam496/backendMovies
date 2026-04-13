@@ -11,7 +11,6 @@ const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'movie-booking',
-        allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp', 'mp4', 'mov', 'avi', 'webm'],
         resource_type: 'auto' // مهم لدعم الفيديوهات بالإضافة للصور
     }
 })
@@ -38,11 +37,11 @@ const handleUpload = (req, res, next) => {
     console.log('🎬 Multer middleware running...')
     upload(req, res, function (err) {
         if (err) {
-            console.error('❌ Multer error:', err.message)
+            console.error('❌ Multer error:', err)
             return res.status(400).json({
                 success: false,
                 message: 'File upload failed',
-                error: err.message
+                error: err.message || err
             })
         }
         console.log('✅ Files uploaded successfully:', Object.keys(req.files || {}))
