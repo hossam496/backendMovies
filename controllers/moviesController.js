@@ -154,7 +154,7 @@ const normalizeItemForOutput = (it = {}) => {
     obj.trailerUrl =
         it.trailerUrl || it.latestTrailer?.url || it.latestTrailer?.videoId || null
 
-    if (it.type === "latestTrailers" && it.latestTrailer) {
+    if (it.type === "latestTrailer" && it.latestTrailer) {
         const lt = it.latestTrailer
         obj.genres = obj.genres || lt.genres || []
         obj.year = obj.year || lt.year || null
@@ -191,8 +191,8 @@ export async function createMovie(req, res) {
             ? req.files.poster[0].path
             : body.poster || null
 
-        const trailerUrl = req.files?.trailerUrl?.[0]?.path
-            ? req.files.trailerUrl[0].path
+        const trailerUrl = req.files?.trailerFile?.[0]?.path
+            ? req.files.trailerFile[0].path
             : body.trailerUrl || null
 
         const videoUrl = req.files?.videoUrl?.[0]?.path
@@ -450,7 +450,7 @@ export async function getMovieById(req, res) {
 
         const obj = normalizeItemForOutput(item)
 
-        if (item.type === "latestTrailers" && item.latestTrailer) {
+        if (item.type === "latestTrailer" && item.latestTrailer) {
             const lt = item.latestTrailer
             obj.genres = obj.genres || lt.genres || []
             obj.year = obj.year || lt.year || null
@@ -586,8 +586,8 @@ export async function updateMovie(req, res) {
             ? (tryUnlinkUploadUrl(m.poster), req.files.poster[0].path)
             : body.poster || m.poster;
 
-        const trailerUrl = req.files?.trailerUrl?.[0]?.path
-            ? (tryUnlinkUploadUrl(m.trailerUrl), req.files.trailerUrl[0].path)
+        const trailerUrl = req.files?.trailerFile?.[0]?.path
+            ? (tryUnlinkUploadUrl(m.trailerUrl), req.files.trailerFile[0].path)
             : body.trailerUrl || m.trailerUrl;
 
         const videoUrl = req.files?.videoUrl?.[0]?.path

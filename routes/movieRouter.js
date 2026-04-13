@@ -11,7 +11,7 @@ const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'movie-booking',
-        allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'mp4', 'mov', 'avi', 'webm'],
+        allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp', 'mp4', 'mov', 'avi', 'webm'],
         resource_type: 'auto' // مهم لدعم الفيديوهات بالإضافة للصور
     }
 })
@@ -22,7 +22,7 @@ const upload = multer({
 
 }).fields([
     { name: 'poster', maxCount: 1 },
-    { name: 'trailerUrl', maxCount: 1 },
+    { name: 'trailerFile', maxCount: 1 },
     { name: 'videoUrl', maxCount: 1 },
     { name: 'ltThumbnail', maxCount: 1 },
     { name: 'castFiles', maxCount: 20 },
